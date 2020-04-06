@@ -108,8 +108,9 @@ class ModelDisigner(nn.Module):
 
 if __name__ == '__main__':
 	model = ModelDisigner()
-	target = torch.rand([BATCH_SIZE, 3, 128, 128])
-	searchs = torch.rand([BATCH_SIZE, TIMESTEPS, 3, 256, 256])
+	model = model.to(device)
+	target = torch.rand([BATCH_SIZE, 3, 128, 128]).to(device)
+	searchs = torch.rand([BATCH_SIZE, TIMESTEPS, 3, 256, 256]).to(device)
 	score, masks = model(target, searchs)
 	print('score.shape: ', score.shape)
 	print('masks.shape: ', masks.shape)

@@ -154,7 +154,7 @@ class ScoreBranch(nn.Module):
 	def __init__(self):
 		super(ScoreBranch, self).__init__()
 		self.branch = nn.Sequential(
-			ConvRnn(in_channels=256, out_channels=1024, input_size=17, cell_model='Gru'),
+			ConvRnn(in_channels=256, out_channels=1024, input_size=17),
 			nn.ReLU(),
 			nn.Conv2d(1024, 2, 1),
 			nn.Sigmoid()
@@ -174,7 +174,7 @@ class MaskBranch(nn.Module):
 	def __init__(self):
 		super(MaskBranch, self).__init__()
 		self.deconv = nn.ConvTranspose2d(256, 32, 16, 16)
-		self.branch = ConvRnn(in_channels=32, out_channels=32, input_size=16, cell_model='Gru')
+		self.branch = ConvRnn(in_channels=32, out_channels=32, input_size=16)
 
 	def forward(self, masks_feat):
 		

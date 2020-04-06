@@ -57,12 +57,13 @@ class ConvGruCell(nn.Module):
 Recurrent part
 '''
 class ConvRnn(nn.Module):
-	def __init__(self, in_channels, out_channels, input_size, cell_model):
+	def __init__(self, in_channels, out_channels, input_size, cell_model=CELL_MODEL, mode=MODE):
 		super(ConvRnn, self).__init__()
+		self.cell_model = cell_model
+		self.mode = mode
 		self.in_channels = in_channels
 		self.out_channels = out_channels
 		self.input_size = input_size
-		self.cell_model = cell_model
 		self.cell_dict = {
 		'Rnn' : ConvRnnCell(in_channels, out_channels),
 		'Gru' : ConvGruCell(in_channels, out_channels),
@@ -76,7 +77,7 @@ class ConvRnn(nn.Module):
 		x_cells = torch.tensor([]).to(device)
 
 		x = x.reshape(TIMESTEPS, BATCH_SIZE, self.in_channels, self.input_size, self.input_size)
-		if MODE == 'Standart':
+		if self.mode == 'Standart':
 			for i in range(TIMESTEPS):
 				x_cell, _ = self.conv_rnn(x[i], self.init_hidden)
 				x_cell = x_cell.unsqueeze(0)
