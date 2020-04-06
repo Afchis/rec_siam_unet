@@ -14,7 +14,7 @@ import torchvision.transforms as transforms
 from args import *
 
 
-class TestPerson(Dataset):
+class TrainPerson(Dataset):
 	def __init__(self):
 		super().__init__()
 		self.target_trans = transforms.Compose([
@@ -95,7 +95,11 @@ class TestPerson(Dataset):
 		return path_0 + path_1
 
 
-dataset = TestPerson()
+train_dataset = TrainPerson()
+train_loader = DataLoader(dataset=train_dataset,
+                          batch_size=BATCH_SIZE,
+                          num_workers=1,
+                          shuffle=False)
 
 
 

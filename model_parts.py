@@ -162,7 +162,7 @@ class ScoreBranch(nn.Module):
 
 	def forward(self, x):
 		score = self.branch(x)
-		pos_list = torch.tensor([], dtype=int)
+		pos_list = torch.tensor([], dtype=int).to(device)
 		for i in range(score.size(0)):
 			max_value = score[i][1].max()
 			pos = (score[i] == max_value).nonzero()[0][1:].unsqueeze(0)

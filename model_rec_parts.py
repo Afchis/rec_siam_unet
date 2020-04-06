@@ -70,10 +70,10 @@ class ConvRnn(nn.Module):
 		self.conv_rnn = self.cell_dict[self.cell_model]
 
 		self.hidden_size = (BATCH_SIZE, self.out_channels, self.input_size, self.input_size)
-		self.init_hidden = torch.zeros(self.hidden_size)
+		self.init_hidden = torch.zeros(self.hidden_size).to(device)
 
 	def forward(self, x):
-		x_cells = torch.tensor([])
+		x_cells = torch.tensor([]).to(device)
 
 		x = x.reshape(TIMESTEPS, BATCH_SIZE, self.in_channels, self.input_size, self.input_size)
 		if MODE == 'Standart':

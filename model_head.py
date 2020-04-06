@@ -42,7 +42,7 @@ class ModelDisigner(nn.Module):
 	def Correlation_func(self, s_f, t_f): # s_f-->search_feat, t_f-->target_feat
 		s_f = s_f.reshape(TIMESTEPS, BATCH_SIZE, s_f.size(1), s_f.size(2), s_f.size(3)) # 5, 2, 256, 32, 32
 		t_f = t_f.reshape(-1, 1, t_f.size(2), t_f.size(3)) # 512, 1, 32, 32
-		outs = torch.tensor([])
+		outs = torch.tensor([]).to(device)
 		for i in range(TIMESTEPS):
 			out = s_f[i].reshape(1, -1, s_f[i].size(2), s_f[i].size(3)) # 1, 512, 32, 32
 			out = F.conv2d(out, t_f, groups=out.size(1))
@@ -51,9 +51,9 @@ class ModelDisigner(nn.Module):
 		return outs
 
 	def Chiose_RoW(self, corr_feat, pos_list):
-		i_tensors = torch.tensor([])
+		i_tensors = torch.tensor([]).to(device)
 		for i in range(corr_feat.size(0)):
-			j_tensors = torch.tensor([])
+			j_tensors = torch.tensor([]).to(device)
 			for j in range(corr_feat.size(1)):
 				j_tensor = corr_feat[i][j][pos_list[i][j][0]][pos_list[i][j][1]].unsqueeze(0)
 				j_tensors = torch.cat([j_tensors, j_tensor], dim=0)
