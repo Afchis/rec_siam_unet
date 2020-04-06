@@ -1,2 +1,3 @@
 pathignore/
+runs/
 __pycache__/
