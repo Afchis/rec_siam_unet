@@ -17,6 +17,28 @@ class ModelDisigner(nn.Module):
 		self.score_branch = ScoreBranch()
 		self.mask_branch = MaskBranch()
 
+		self.up_and_cat = UpAndCat()
+		self.up_conv_4 = nn.Sequential(
+			ConvRelu(512+32, 512),
+			ConvRelu(512, 512)
+			)
+		self.up_conv_3 = nn.Sequential(
+			ConvRelu(512+256, 256),
+			ConvRelu(256, 256)
+			)
+		self.up_conv_2 = nn.Sequential(
+			ConvRelu(256+128, 128),
+			ConvRelu(128, 128)
+			)
+		self.up_conv_1 = nn.Sequential(
+			ConvRelu(128+64, 64),
+			ConvRelu(64, 64)
+			)
+		self.final = nn.Sequential(
+			nn.Conv2d(64, 2, kernel_size=1),
+			nn.Sigmoid()
+			)
+
 	def Correlation_func(self, s_f, t_f): # s_f-->search_feat, t_f-->target_feat
 		s_f = s_f.reshape(TIMESTEPS, BATCH_SIZE, s_f.size(1), s_f.size(2), s_f.size(3)) # 5, 2, 256, 32, 32
 		t_f = t_f.reshape(-1, 1, t_f.size(2), t_f.size(3)) # 512, 1, 32, 32
@@ -44,29 +66,50 @@ class ModelDisigner(nn.Module):
 		searchs = searchs.permute(1, 0, 2, 3, 4).reshape(TIMESTEPS*BATCH_SIZE, INPUT_CHANNELS, SEARCH_SIZE, SEARCH_SIZE)
 		search_cats, searchs_feat = self.search(searchs) 
 		corr_feat = self.Correlation_func(searchs_feat, target_feat) # TIMESTEPS*BATCH_SIZE, 256, 17, 17
-		# Score Branch
-		score, pos_list = self.score_branch(corr_feat) # TIMESTEPS*BATCH_SIZE, 2, 17, 17 # TIMESTEPS*BATCH_SIZE, 2
+
+		##### Score Branch #####
+		score, pos_list = self.score_branch(corr_feat) # score --> [TIMESTEPS*BATCH_SIZE, 2, 17, 17] # pos_list --> [TIMESTEPS*BATCH_SIZE, 2]
 		score = score.reshape(TIMESTEPS, BATCH_SIZE, NUM_CLASSES, 17, 17)
 		score = score.permute(1, 0, 2, 3, 4) # BATCH_SIZE, TIMESTEPS, NUM_CLASSES, 17, 17
-		pos_list = pos_list.reshape(TIMESTEPS, BATCH_SIZE, 2)
-		pos_list = pos_list.permute(1, 0, 2,) # BATCH_SIZE, TIMESTEPS, 2
-		# Mask Branch
-		corr_feat = corr_feat.reshape(TIMESTEPS, BATCH_SIZE, 256, 17, 17).permute(1, 0, 3, 4, 2) # BATCH_SIZE, TIMESTEPS, 256, 17, 17
-		masks_feat = self.Chiose_RoW(corr_feat, pos_list)
-		# print('score.shape: ', score.shape)
-		# print('masks_feat.shape: ', masks_feat.shape)
-		mask = self.mask_branch(masks_feat)
-		# print(mask.shape)
-		search_cats_3 = search_cats[3].reshape(TIMESTEPS, BATCH_SIZE, 512, 32, 32).permute(1, 0, 2, 3, 4) # BATCH_SIZE*TIMESTEPS, 512, 32, 32
-		print(search_cats[3].shape)
-		# search_cats[0] = search_cats[0].reshape(TIMESTEPS, BATCH_SIZE, 256, 17, 17).permute(1, 0, 3, 4, 2)
-		# search_cats[1] = search_cats[1].reshape(TIMESTEPS, BATCH_SIZE, 256, 17, 17).permute(1, 0, 3, 4, 2)
-		# search_cats[2] = search_cats[2].reshape(TIMESTEPS, BATCH_SIZE, 256, 17, 17).permute(1, 0, 3, 4, 2)
-		# 
-		return score, masks_feat
+		pos_list = pos_list.reshape(TIMESTEPS, BATCH_SIZE, 2) # TIMESTEPS, BATCH_SIZE, 2
+
+		##### Mask Branch #####
+		corr_feat = corr_feat.reshape(TIMESTEPS, BATCH_SIZE, 256, 17, 17).permute(0, 1, 3, 4, 2) # TIMESTEPS, BATCH_SIZE, 256, 17, 17
+		masks_feat = self.Chiose_RoW(corr_feat, pos_list) # TIMESTEPS, BATCH_SIZE, 256
+		masks_feat = masks_feat.reshape(TIMESTEPS*BATCH_SIZE, 256, 1, 1) # TIMESTEPS*BATCH_SIZE, 256, 1, 1
+		masks_feat = self.mask_branch(masks_feat) # TIMESTEPS*BATCH_SIZE, 32, 16, 16
+		'''
+		search_cats.Size -- > TIMESTEPS*BATCH_SIZE, CHANNELS, SIZE, SIZE
+
+		search_cats[3].shape:  torch.Size([10, 512, 32, 32])
+		search_cats[2].shape:  torch.Size([10, 256, 64, 64])
+		search_cats[1].shape:  torch.Size([10, 128, 128, 128])
+		search_cats[0].shape:  torch.Size([10, 64, 256, 256])
+
+		masks_feat.Size -- > TIMESTEPS*BATCH_SIZE, CHANNELS, SIZE, SIZE
+
+		masks_feat.shape:      torch.Size([10, 32, 16, 16])
+		'''
+		masks = self.up_and_cat(masks_feat, search_cats[3])
+		masks = self.up_conv_4(masks)
+
+		masks = self.up_and_cat(masks, search_cats[2])
+		masks = self.up_conv_3(masks)
+
+		masks = self.up_and_cat(masks, search_cats[1])
+		masks = self.up_conv_2(masks)
+
+		masks = self.up_and_cat(masks, search_cats[0])
+		masks = self.up_conv_1(masks)
+
+		masks = self.final(masks) # masks.shape:  torch.Size([10, 2, 256, 256])
+		masks = masks.reshape(TIMESTEPS, BATCH_SIZE, 2, 256, 256).permute(1, 0, 2, 3, 4) # BATCH_SIZE, TIMESTEPS, 2, 256, 256
+		return score, masks
 
 if __name__ == '__main__':
 	model = ModelDisigner()
 	target = torch.rand([BATCH_SIZE, 3, 128, 128])
 	searchs = torch.rand([BATCH_SIZE, TIMESTEPS, 3, 256, 256])
-	score, pos_list = model(target, searchs)
+	score, masks = model(target, searchs)
+	print('score.shape: ', score.shape)
+	print('masks.shape: ', masks.shape)

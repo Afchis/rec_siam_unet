@@ -177,9 +177,9 @@ class MaskBranch(nn.Module):
 		self.branch = ConvRnn(in_channels=32, out_channels=32, input_size=16, cell_model='Gru')
 
 	def forward(self, masks_feat):
-		masks_feat = masks_feat.reshape(BATCH_SIZE*TIMESTEPS, 256, 1, 1)
+		
 		out = self.deconv(masks_feat)
-		out = out.reshape(BATCH_SIZE, TIMESTEPS, 32, 16, 16)
+		out = out.reshape(TIMESTEPS*BATCH_SIZE, 32, 16, 16)
 		return out
 
 
