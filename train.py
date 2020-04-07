@@ -31,10 +31,9 @@ for epoch in range(15):
 			loss.backward()
 			optimizer.step()
 			optimizer.zero_grad()
-			if iter % 2 == 0:
-				print(loss.item())
 			if iter % 10 == 0:
-				 writer.add_scalars('%s_loss' % GRAPH_NAME, {'train' : loss.item()}, epoch)
+				print('iter: ', iter, 'loss: ', loss.mean().item())
+				writer.add_scalars('%s_loss' % GRAPH_NAME, {'train' : loss.mean().item()}, iter)
 			iter += 1
 
 		except RuntimeError:
