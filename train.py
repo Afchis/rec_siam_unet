@@ -3,7 +3,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from args import *
 from model_head import *
-from dataloader_5x import *
+from dataloader import *
 from loss_metric import *
 
 
