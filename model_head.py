@@ -12,8 +12,7 @@ Model head
 class ModelDisigner(nn.Module):
 	def __init__(self):
 		super(ModelDisigner, self).__init__()
-		self.target = BackboneUNet(TARGET_SIZE)
-		self.search = BackboneUNet(SEARCH_SIZE)
+		self.backbone = BackboneUNet()
 		self.score_branch = ScoreBranch()
 		self.mask_branch = MaskBranch()
 
@@ -62,9 +61,9 @@ class ModelDisigner(nn.Module):
 		return i_tensors
 
 	def forward(self, target, searchs):
-		_,  target_feat = self.target(target)
+		_,  target_feat = self.backbone(target)
 		searchs = searchs.permute(1, 0, 2, 3, 4).reshape(TIMESTEPS*BATCH_SIZE, INPUT_CHANNELS, SEARCH_SIZE, SEARCH_SIZE)
-		search_cats, searchs_feat = self.search(searchs) 
+		search_cats, searchs_feat = self.backbone(searchs) 
 		corr_feat = self.Correlation_func(searchs_feat, target_feat) # TIMESTEPS*BATCH_SIZE, 256, 17, 17
 
 		##### Score Branch #####

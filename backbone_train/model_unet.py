@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from args import *
-from model_rec_parts import *
 
 
 '''
@@ -52,9 +52,13 @@ class Cat(nn.Module):
 
 
 class Unet(nn.Module):
-	def __init__(self):
+	def __init__(self, input_size=SEARCH_SIZE):
 		super(Unet, self).__init__()
-		self.ch_list = [INPUT_CHANNELS, 64, 128, 256, 512, 1024]
+		self.input_size = input_size
+		self.ch_list = [INPUT_CHANNELS, 128, 256, 512, 1024, 2048]
+		self.input_x2 = int(self.input_size / 2)
+		self.input_x4 = int(self.input_size / 4)
+		self.input_x8 = int(self.input_size / 8)
 
 		##### Down layers #####
 		self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
@@ -103,7 +107,7 @@ class Unet(nn.Module):
 		##### Final layers #####
 		self.final = nn.Sequential(
 			nn.Conv2d(self.ch_list[1], UNET_NUM_CLASSES, kernel_size=1),
-			nn.Sigmoid()
+			# nn.Sigmoid(),
 			)
 
 
@@ -127,60 +131,6 @@ class Unet(nn.Module):
 		up_feat1 = self.up_cat_1(up_feat2, down1_feat)
 		up_feat1 = self.up_conv_1(up_feat1)
 
-		out = self.final(up_feat1)
+		out = F.log_softmax(self.final(up_feat1), 1)
 
-		return down1_feat, down2_feat, down3_feat, down4_feat, bottom_feat
-
-'''
-Siam parts
-'''
-class BackboneUNet(nn.Module):
-	def __init__(self):
-		super(BackboneUNet, self).__init__()
-		self.model = Unet()
-		self.model.load_state_dict(torch.load(UNET_WEIGHTS))
-		self.adjust = nn.Conv2d(1024, 256, kernel_size=1) 
-
-	def forward(self, x):
-		search_cat = self.model(x)
-		out = self.adjust(search_cat[4])
-		return search_cat, out
-
-class ScoreBranch(nn.Module):
-	def __init__(self):
-		super(ScoreBranch, self).__init__()
-		self.branch = nn.Sequential(
-			ConvRnn(in_channels=256, out_channels=1024, input_size=17),
-			nn.ReLU(),
-			nn.Conv2d(1024, 2, 1),
-			nn.Sigmoid()
-			)
-
-	def forward(self, x):
-		score = self.branch(x)
-		pos_list = torch.tensor([], dtype=int).to(device)
-		for i in range(score.size(0)):
-			max_value = score[i][1].max()
-			pos = (score[i] == max_value).nonzero()[0][1:].unsqueeze(0)
-			pos_list = torch.cat([pos_list, pos], dim=0)
-		return score, pos_list
-
-
-class MaskBranch(nn.Module):
-	def __init__(self):
-		super(MaskBranch, self).__init__()
-		self.deconv = nn.ConvTranspose2d(256, 32, 16, 16)
-		self.branch = ConvRnn(in_channels=32, out_channels=32, input_size=16)
-
-	def forward(self, masks_feat):
-		
-		out = self.deconv(masks_feat)
-		out = out.reshape(TIMESTEPS*BATCH_SIZE, 32, 16, 16)
 		return out
-
-
-if __name__ == '__main__':
-	model = BackboneUNet(128)
-	tensor = torch.rand([BATCH_SIZE, 3, 128, 128])
-	search_cat, out = model(tensor)
-	print(out.shape)

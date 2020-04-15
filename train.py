@@ -3,7 +3,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from args import *
 from model_head import *
-from dataloader import *
+from dataloader_voc import *
 from loss_metric import *
 
 
@@ -28,6 +28,7 @@ for epoch in range(15):
 		try:
 			pred_scores, pred_masks = model(target, searchs)		
 			loss = all_losses(pred_masks, labels, depths, pred_scores, score_labels)
+			print("done!")
 			loss.backward()
 			optimizer.step()
 			optimizer.zero_grad()
