@@ -9,8 +9,8 @@ SEARCH_SIZE = 256
 TARGET_SIZE = 128
 UNET_NUM_CLASSES = 2
 
-MODE = '--'
-CELL_MODEL = 'Gru'
+MODE = 'Standart'
+CELL_MODEL = 'Rnn'
 
 UNET_WEIGHTS = "pathignore/weights/weights.pth"
 

@@ -81,7 +81,7 @@ class TrainPerson(Dataset):
         box = [bboxs[0][0], bboxs[0][1], bboxs[0][2], bboxs[0][3]]
         target = search.crop([box[0], box[1], box[0]+box[2], box[1]+box[3]])
         
-        target = self.search_trans(target)
+        target = self.target_trans(target)
         search = self.search_trans(search)
         
         mask = Image.new('L', (data_json['images'][image_i]['width'], data_json['images'][image_i]['height']))
@@ -89,7 +89,8 @@ class TrainPerson(Dataset):
         idraw.polygon(data_json['annotations'][js[0]]['segmentation'][0], fill='white')
         mask = self.search_trans(mask)
         label, depth, score_label = self.get_labels(mask)
-    
+
+        search, label, depth, score_label = search.unsqueeze(0), label.unsqueeze(0), depth.unsqueeze(0), score_label.unsqueeze(0)
         return target, search, label, depth, score_label
 
     def __len__(self):
