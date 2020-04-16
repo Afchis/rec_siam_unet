@@ -15,7 +15,7 @@ from args import *
 
 
 import json
-with open('/storage/ProtopopovI/_data_/COCO/2014/annotations/person_keypoints_train2014.json') as data_file:    
+with open('/storage/ProtopopovI/_data_/COCO/2014/annotations/person_keypoints_val2014.json') as data_file:    
     data_json = json.load(data_file)
 
 
@@ -30,7 +30,7 @@ class TrainPerson(Dataset):
             transforms.Resize((SEARCH_SIZE, SEARCH_SIZE), interpolation=0),
             transforms.ToTensor()
             ])
-        self.file_names = sorted(os.listdir("/storage/ProtopopovI/_data_/COCO/2014/train2014/"))
+        self.file_names = sorted(os.listdir("/storage/ProtopopovI/_data_/COCO/2014/val2014/"))
         
     def transform_score_label(self, depth2):
         depth2 = depth2.reshape(1, 1, depth2.size(0), depth2.size(1))
@@ -76,7 +76,7 @@ class TrainPerson(Dataset):
                         js.append(j)
                         seg_ids.append(data_json['annotations'][j]['id'])
                         bboxs.append(data_json['annotations'][j]['bbox'])
-        search = Image.open("/storage/ProtopopovI/_data_/COCO/2014/train2014/" + file_name).convert('RGB')
+        search = Image.open("/storage/ProtopopovI/_data_/COCO/2014/val2014/" + file_name).convert('RGB')
 
         box = [bboxs[0][0], bboxs[0][1], bboxs[0][2], bboxs[0][3]]
         target = search.crop([box[0], box[1], box[0]+box[2], box[1]+box[3]])
@@ -94,7 +94,7 @@ class TrainPerson(Dataset):
         return target, search, label, depth, score_label
 
     def __len__(self):
-    	return len(os.listdir("/storage/ProtopopovI/_data_/COCO/2014/train2014/"))
+    	return len(os.listdir("/storage/ProtopopovI/_data_/COCO/2014/val2014/"))
 
 
 train_dataset = TrainPerson()
