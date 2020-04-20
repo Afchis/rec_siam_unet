@@ -15,7 +15,7 @@ from args import *
 
 
 import json
-with open('/storage/ProtopopovI/_data_/COCO/2014/annotations/person_keypoints_val2014.json') as data_file:    
+with open('/storage/ProtopopovI/_data_/COCO/2014/annotations/person_keypoints_train2014.json') as data_file:    
     data_json = json.load(data_file)
 
 
@@ -30,7 +30,7 @@ class TrainPerson(Dataset):
             transforms.Resize((SEARCH_SIZE, SEARCH_SIZE), interpolation=0),
             transforms.ToTensor()
             ])
-        self.file_names = sorted(os.listdir("/storage/ProtopopovI/_data_/COCO/2014/val2014/"))
+        self.file_names = sorted(os.listdir("/storage/ProtopopovI/_data_/COCO/2014/train2014/"))
         
     def transform_score_label(self, depth2):
         depth2 = depth2.reshape(1, 1, depth2.size(0), depth2.size(1))
@@ -63,7 +63,6 @@ class TrainPerson(Dataset):
     
     def  __getitem__(self, idx):
         file_name = self.file_names[idx]
-        
         bboxs = []
         seg_ids = []
         js = []
@@ -76,7 +75,7 @@ class TrainPerson(Dataset):
                         js.append(j)
                         seg_ids.append(data_json['annotations'][j]['id'])
                         bboxs.append(data_json['annotations'][j]['bbox'])
-        search = Image.open("/storage/ProtopopovI/_data_/COCO/2014/val2014/" + file_name).convert('RGB')
+        search = Image.open("/storage/ProtopopovI/_data_/COCO/2014/train2014/" + file_name).convert('RGB')
 
         box = [bboxs[0][0], bboxs[0][1], bboxs[0][2], bboxs[0][3]]
         target = search.crop([box[0], box[1], box[0]+box[2], box[1]+box[3]])
@@ -91,10 +90,12 @@ class TrainPerson(Dataset):
         label, depth, score_label = self.get_labels(mask)
 
         search, label, depth, score_label = search.unsqueeze(0), label.unsqueeze(0), depth.unsqueeze(0), score_label.unsqueeze(0)
+        label = label[0][1].unsqueeze(0).unsqueeze(0)
+        score_label = score_label[0][1].unsqueeze(0).unsqueeze(0)
         return target, search, label, depth, score_label
 
     def __len__(self):
-    	return len(os.listdir("/storage/ProtopopovI/_data_/COCO/2014/val2014/"))
+    	return len(os.listdir("/storage/ProtopopovI/_data_/COCO/2014/train2014/"))
 
 
 train_dataset = TrainPerson()
@@ -105,12 +106,12 @@ train_loader = DataLoader(dataset=train_dataset,
 
 
 if __name__ == '__main__':
-	print('Write number of image in dataset: ')
-	inp = int(input())
-	target, search, label, depth, score_label = train_dataset[inp]
+	# print('Write number of image in dataset: ')
+	# inp = int(input())
+	target, search, label, depth, score_label = train_dataset[9]
 	print(target.shape)
 	print(search.shape)
 	print(label.shape)
 	print(depth.shape)
 	print(score_label.shape)
-	print(score_label)
+	# print(score_label)

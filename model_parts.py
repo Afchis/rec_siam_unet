@@ -152,7 +152,7 @@ class ScoreBranch(nn.Module):
 		self.branch = nn.Sequential(
 			ConvRnn(in_channels=256, out_channels=1024, input_size=17),
 			nn.ReLU(),
-			nn.Conv2d(1024, 2, 1),
+			nn.Conv2d(1024, NUM_CLASSES, 1),
 			nn.Sigmoid()
 			)
 
@@ -160,7 +160,7 @@ class ScoreBranch(nn.Module):
 		score = self.branch(x)
 		pos_list = torch.tensor([], dtype=int).to(device)
 		for i in range(score.size(0)):
-			max_value = score[i][1].max()
+			max_value = score[i][0].max()
 			pos = (score[i] == max_value).nonzero()[0][1:].unsqueeze(0)
 			pos_list = torch.cat([pos_list, pos], dim=0)
 		return score, pos_list

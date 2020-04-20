@@ -34,7 +34,7 @@ class ModelDisigner(nn.Module):
 			ConvRelu(64, 64)
 			)
 		self.final = nn.Sequential(
-			nn.Conv2d(64, 2, kernel_size=1),
+			nn.Conv2d(64, NUM_CLASSES, kernel_size=1),
 			nn.Sigmoid()
 			)
 
@@ -102,7 +102,7 @@ class ModelDisigner(nn.Module):
 		masks = self.up_conv_1(masks)
 
 		masks = self.final(masks) # masks.shape:  torch.Size([10, 2, 256, 256])
-		masks = masks.reshape(TIMESTEPS, BATCH_SIZE, 2, 256, 256).permute(1, 0, 2, 3, 4) # BATCH_SIZE, TIMESTEPS, 2, 256, 256
+		masks = masks.reshape(TIMESTEPS, BATCH_SIZE, NUM_CLASSES, 256, 256).permute(1, 0, 2, 3, 4) # BATCH_SIZE, TIMESTEPS, 2, 256, 256
 		return score, masks
 
 if __name__ == '__main__':

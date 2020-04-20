@@ -12,7 +12,7 @@ writer = SummaryWriter()
 model = ModelDisigner()
 model = model.to(device)
 
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.0005)
 
 print('Tensorboard graph name: ')
 GRAPH_NAME = input()
@@ -41,5 +41,5 @@ for epoch in range(15):
 print('Tensorboard graph name: ', GRAPH_NAME)
 writer.close()
 
-torch.save(model.state_dict(), 'pathignore/weights/test.pth')
-print('WEIGHTS IS SAVED: pathignore/weights/test.pth')
+torch.save(model.state_dict(), 'pathignore/weights/test2.pth')
+print('WEIGHTS IS SAVED: pathignore/weights/test2.pth')
