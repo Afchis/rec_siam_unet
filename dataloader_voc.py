@@ -60,6 +60,20 @@ class TrainPerson(Dataset):
         score_labels = score_labels.squeeze()
         
         return labels, depths, score_labels
+
+    def Choise_feat(self, label, score_label, x=8):
+        score_label = score_label[0][1]
+        max_value = score_label.max()
+        pos = (score_label == max_value).nonzero()#.unsqueeze(0)
+
+        label = label.permute(0, 2, 3, 1)
+        i_tensors = torch.tensor([])
+        for i in range(label.size(0)):
+            i_tensor = label[i][x*pos[i][0]:x*pos[i][0]+x*16, x*pos[i][1]:x*pos[i][1]+x*16, :].unsqueeze(0)
+            i_tensors = torch.cat([i_tensors, i_tensor], dim=0)
+
+        label = i_tensors.permute(0, 3, 1, 2)
+        return label
     
     def  __getitem__(self, idx):
         file_name = self.file_names[idx]
@@ -90,8 +104,8 @@ class TrainPerson(Dataset):
         label, depth, score_label = self.get_labels(mask)
 
         search, label, depth, score_label = search.unsqueeze(0), label.unsqueeze(0), depth.unsqueeze(0), score_label.unsqueeze(0)
-        label = label[0][1].unsqueeze(0).unsqueeze(0)
-        score_label = score_label[0][1].unsqueeze(0).unsqueeze(0)
+        label = self.Choise_feat(label, score_label)
+        depth = self.Choise_feat(depth, score_label)
         return target, search, label, depth, score_label
 
     def __len__(self):
@@ -109,9 +123,9 @@ if __name__ == '__main__':
 	# print('Write number of image in dataset: ')
 	# inp = int(input())
 	target, search, label, depth, score_label = train_dataset[9]
-	print(target.shape)
-	print(search.shape)
-	print(label.shape)
-	print(depth.shape)
-	print(score_label.shape)
+	print('target.shape', target.shape)
+	print('search.shape', search.shape)
+	print('label.shape', label.shape)
+	print('depth.shape', depth.shape)
+	print('score_label.shape', score_label.shape)
 	# print(score_label)

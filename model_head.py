@@ -17,6 +17,7 @@ class ModelDisigner(nn.Module):
 		self.mask_branch = MaskBranch()
 
 		self.up_and_cat = UpAndCat()
+		self.up = nn.Upsample(scale_factor=2, mode='nearest')
 		self.up_conv_4 = nn.Sequential(
 			ConvRelu(512+32, 512),
 			ConvRelu(512, 512)
@@ -60,6 +61,25 @@ class ModelDisigner(nn.Module):
 			i_tensors = torch.cat([i_tensors, i_tensor], dim=0)
 		return i_tensors
 
+
+	def Choise_feat(self, feat, pos_list, x):
+		feat = feat.reshape(TIMESTEPS, BATCH_SIZE, feat.size(1), feat.size(2), feat.size(3))
+		feat = feat.permute(0, 1, 3, 4, 2)
+
+		i_tensors = torch.tensor([]).to(device)
+		for i in range(feat.size(0)):
+			j_tensors = torch.tensor([]).to(device)
+			for j in range(feat.size(1)):
+				j_tensor = feat[i][j][x*pos_list[i][j][0]:x*pos_list[i][j][0]+x*16, x*pos_list[i][j][1]:x*pos_list[i][j][1]+x*16, :].unsqueeze(0)
+				j_tensors = torch.cat([j_tensors, j_tensor], dim=0)
+			i_tensor = j_tensors.unsqueeze(0)
+			i_tensors = torch.cat([i_tensors, i_tensor], dim=0)
+
+		feat = i_tensors.permute(0, 1, 4, 2, 3)
+		feat = feat.reshape(TIMESTEPS*BATCH_SIZE, feat.size(2), feat.size(3), feat.size(4))
+		return feat
+
+
 	def forward(self, target, searchs):
 		_,  target_feat = self.backbone(target)
 		searchs = searchs.permute(1, 0, 2, 3, 4).reshape(TIMESTEPS*BATCH_SIZE, INPUT_CHANNELS, SEARCH_SIZE, SEARCH_SIZE)
@@ -89,20 +109,27 @@ class ModelDisigner(nn.Module):
 
 		masks_feat.shape:      torch.Size([10, 32, 16, 16])
 		'''
-		masks = self.up_and_cat(masks_feat, search_cats[3])
+		feat = self.Choise_feat(search_cats[3], pos_list, 1)
+		masks = torch.cat([masks_feat, feat], dim=1)
 		masks = self.up_conv_4(masks)
+		masks = self.up(masks)
 
-		masks = self.up_and_cat(masks, search_cats[2])
+		feat = self.Choise_feat(search_cats[2], pos_list, 2)
+		masks = torch.cat([masks, feat], dim=1)
 		masks = self.up_conv_3(masks)
-
-		masks = self.up_and_cat(masks, search_cats[1])
+		masks = self.up(masks)
+		
+		feat = self.Choise_feat(search_cats[1], pos_list, 4)
+		masks = torch.cat([masks, feat], dim=1)
 		masks = self.up_conv_2(masks)
+		masks = self.up(masks)
 
-		masks = self.up_and_cat(masks, search_cats[0])
+		feat = self.Choise_feat(search_cats[0], pos_list, 8)
+		masks = torch.cat([masks, feat], dim=1)
 		masks = self.up_conv_1(masks)
 
-		masks = self.final(masks) # masks.shape:  torch.Size([10, 2, 256, 256])
-		masks = masks.reshape(TIMESTEPS, BATCH_SIZE, NUM_CLASSES, 256, 256).permute(1, 0, 2, 3, 4) # BATCH_SIZE, TIMESTEPS, 2, 256, 256
+		masks = self.final(masks) # masks.shape:  torch.Size([10, 2, 128, 128])
+		masks = masks.reshape(TIMESTEPS, BATCH_SIZE, NUM_CLASSES, 128, 128).permute(1, 0, 2, 3, 4) # BATCH_SIZE, TIMESTEPS, 2, 128, 128
 		return score, masks
 
 if __name__ == '__main__':

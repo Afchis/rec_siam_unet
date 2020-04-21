@@ -25,19 +25,19 @@ for epoch in range(15):
 		target, searchs, labels, depths, score_labels = data
 		target, searchs, labels, depths, score_labels \
 		 = target.to(device), searchs.to(device), labels.to(device), depths.to(device), score_labels.to(device)
-		try:
-			pred_scores, pred_masks = model(target, searchs)		
-			loss = all_losses(pred_masks, labels, depths, pred_scores, score_labels)
-			loss.backward()
-			optimizer.step()
-			optimizer.zero_grad()
-			if iter % 10 == 0:
-				print('iter: ', iter, 'loss: ', loss.mean().item())
-				writer.add_scalars('%s_loss' % GRAPH_NAME, {'train' : loss.mean().item()}, iter)
-			iter += 1
+		# try:
+		pred_scores, pred_masks = model(target, searchs)		
+		loss = all_losses(pred_masks, labels, depths, pred_scores, score_labels)
+		loss.backward()
+		optimizer.step()
+		optimizer.zero_grad()
+		if iter % 10 == 0:
+			print('iter: ', iter, 'loss: ', loss.mean().item())
+			writer.add_scalars('%s_loss' % GRAPH_NAME, {'train' : loss.mean().item()}, iter)
+		iter += 1
 
-		except RuntimeError:
-			pass
+		# except RuntimeError:
+		# 	pass
 print('Tensorboard graph name: ', GRAPH_NAME)
 writer.close()
 
