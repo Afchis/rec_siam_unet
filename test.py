@@ -2,7 +2,7 @@ import torch
 
 from args import *
 from model_head import *
-from dataloader import *
+from dataloader_voc import *
 from loss_metric import *
 
 
@@ -10,7 +10,7 @@ to_pil = transforms.ToPILImage()
 
 model = ModelDisigner()
 model = model.to(device)
-model.load_state_dict(torch.load('pathignore/weights/test.pth'))
+model.load_state_dict(torch.load('pathignore/weights/test2.pth'))
 
 def save_img(object, object2,  j):
 	# for batch in range(BATCH_SIZE):
