@@ -10,7 +10,7 @@ to_pil = transforms.ToPILImage()
 
 model = ModelDisigner()
 model = model.to(device)
-model.load_state_dict(torch.load('pathignore/weights/test2.pth'))
+model.load_state_dict(torch.load('pathignore/weights/test.pth'))
 
 def save_img(object, object2,  j):
 	# for batch in range(BATCH_SIZE):

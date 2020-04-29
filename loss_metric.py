@@ -37,10 +37,10 @@ def score_loss(xx, yy):
 
 
 ########## All losses: ##########
-def all_losses(x, y, d, xx, yy, score_weight=0.5):
+def all_losses(x, y, d, xx, yy):
     x = x.reshape(-1, NUM_CLASSES, TARGET_SIZE, TARGET_SIZE)
     y = y.reshape(-1, NUM_CLASSES, TARGET_SIZE, TARGET_SIZE)
     d = d.reshape(-1, 1, TARGET_SIZE, TARGET_SIZE)
     xx, yy = xx.reshape(-1, 2, 17, 17), yy.reshape(-1, 2, 17, 17)
-    all_losses = score_weight * dice_loss(x, y, d) + score_weight * score_loss(xx, yy)
+    all_losses =  dice_combo_loss(x, y, d) + 0.05*score_loss(xx, yy)
     return  all_losses

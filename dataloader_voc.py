@@ -98,6 +98,8 @@ class TrainPerson(Dataset):
         search = self.search_trans(search)
         
         mask = Image.new('L', (data_json['images'][image_i]['width'], data_json['images'][image_i]['height']))
+        W_H = torch.tensor([box[2]/data_json['images'][image_i]['width'], box[3]/data_json['images'][image_i]['height']])
+        print(W_H)
         idraw = ImageDraw.Draw(mask)
         idraw.polygon(data_json['annotations'][js[0]]['segmentation'][0], fill='white')
         mask = self.search_trans(mask)

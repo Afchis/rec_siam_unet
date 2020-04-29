@@ -14,7 +14,7 @@ CELL_MODEL = 'Rnn'
 
 UNET_WEIGHTS = "pathignore/weights/weights.pth"
 
-DEVICE = "cuda:0"
+DEVICE = "cuda:1"
 device = torch.device(DEVICE if torch.cuda.is_available() else "cpu")
 device
 

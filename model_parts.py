@@ -22,6 +22,20 @@ class ConvRelu(nn.Module):
         return self.convrelu(x)
 
 
+class ConvRelu_1x1(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(ConvRelu_1x1, self).__init__()
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.convrelu = nn.Sequential(nn.Conv2d(self.in_channels, self.out_channels, kernel_size=1),
+                                      nn.BatchNorm2d(self.out_channels),
+                                      nn.ReLU()
+                                      )
+
+    def forward(self, x):
+        return self.convrelu(x)
+
+
 class MaxPool(nn.Module):
     def __init__(self):
         super(MaxPool, self).__init__()
@@ -146,6 +160,7 @@ class BackboneUNet(nn.Module):
 		out = self.adjust(search_cat[4])
 		return search_cat, out
 
+
 class ScoreBranch(nn.Module):
 	def __init__(self):
 		super(ScoreBranch, self).__init__()
@@ -164,6 +179,29 @@ class ScoreBranch(nn.Module):
 			pos = (score[i] == max_value).nonzero()[0][1:].unsqueeze(0)
 			pos_list = torch.cat([pos_list, pos], dim=0)
 		return score, pos_list
+
+
+# class ShapeBranch(nn.Module):
+# 	def __init__(self):
+# 		super(ShapeBranch, self).__init__()
+# 		self.branch = nn.Sequential(
+# 			ConvRnn(in_channels=256, out_channels=64, input_size=17),
+# 			nn.ReLU(),
+# 			ConvRelu_1x1(64, 8), 
+# 			ConvRelu_1x1(8, 2),
+# 			)
+
+# 		self.fc = nn.Linear(2*17*17, 2)
+# 		self.sigmoid = nn.Sigmoid()
+
+# 	def forward(self, corr_feat):
+# 		out = self.branch(corr_feat)
+# 		out = out.reshape(TIMESTEPS*BATCH_SIZE, 2*17*17)
+# 		out = self.fc(out)
+# 		out = self.sigmoid(out)
+# 		print(out)
+# 		return out
+		
 
 
 class MaskBranch(nn.Module):

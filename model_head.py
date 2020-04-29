@@ -15,6 +15,7 @@ class ModelDisigner(nn.Module):
 		self.backbone = BackboneUNet()
 		self.score_branch = ScoreBranch()
 		self.mask_branch = MaskBranch()
+		# self.shape_branch = ShapeBranch()
 
 		self.up_and_cat = UpAndCat()
 		self.up = nn.Upsample(scale_factor=2, mode='nearest')
@@ -91,6 +92,7 @@ class ModelDisigner(nn.Module):
 		score = score.reshape(TIMESTEPS, BATCH_SIZE, NUM_CLASSES, 17, 17)
 		score = score.permute(1, 0, 2, 3, 4) # BATCH_SIZE, TIMESTEPS, NUM_CLASSES, 17, 17
 		pos_list = pos_list.reshape(TIMESTEPS, BATCH_SIZE, 2) # TIMESTEPS, BATCH_SIZE, 2
+		#out = self.shape_branch(corr_feat)
 
 		##### Mask Branch #####
 		corr_feat = corr_feat.reshape(TIMESTEPS, BATCH_SIZE, 256, 17, 17).permute(0, 1, 3, 4, 2) # TIMESTEPS, BATCH_SIZE, 256, 17, 17
