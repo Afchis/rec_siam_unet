@@ -11,7 +11,7 @@ writer = SummaryWriter()
 
 model = ModelDisigner()
 model = model.to(device)
-model.load_state_dict(torch.load('pathignore/weights/test.pth'))
+# model.load_state_dict(torch.load('pathignore/weights/test.pth'))
 
 optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 
@@ -37,13 +37,13 @@ for epoch in range(15):
 			writer.add_scalars('%s_loss' % GRAPH_NAME, {'train' : loss.mean().item()}, iter)
 		iter += 1
 		if iter % 1000 == 0:
-			torch.save(model.state_dict(), 'pathignore/weights/test.pth')
-			print('WEIGHTS IS SAVED: pathignore/weights/test.pth')
+			torch.save(model.state_dict(), 'pathignore/weights/test09.pth')
+			print('WEIGHTS IS SAVED: pathignore/weights/test09.pth')
 
 		# except RuntimeError:
 		# 	pass
 print('Tensorboard graph name: ', GRAPH_NAME)
 writer.close()
 
-torch.save(model.state_dict(), 'pathignore/weights/test.pth')
-print('WEIGHTS IS SAVED: pathignore/weights/test.pth')
+torch.save(model.state_dict(), 'pathignore/weights/test09.pth')
+print('WEIGHTS IS SAVED: pathignore/weights/test09.pth')

@@ -1,7 +1,7 @@
 import torch
 
 
-BATCH_SIZE = 2
+BATCH_SIZE = 1
 TIMESTEPS = 1
 INPUT_CHANNELS = 3
 NUM_CLASSES = 2
